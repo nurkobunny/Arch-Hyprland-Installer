@@ -6,8 +6,8 @@ echo "${INFO} Starting package installation..."
 # 1. Check Multilib
 if grep -q "#\[multilib\]" /etc/pacman.conf; then
     echo "${NOTE} Enabling Multilib repository..."
-    sudo sed -i '/^#\[multilib\]/{N;s/#//}' /etc/pacman.conf
-    sudo pacman -Sy --noconfirm
+    sudo sed -i '/\[multilib\]/{s/#//; n; s/#//;}' /etc/pacman.conf
+    sudo pacman -Syu --noconfirm
 fi
 
 # 2. Удаление конфликтующих пакетов (из вашего 01-hypr-pkgs.sh)

@@ -33,14 +33,10 @@ fi
 
 # 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
-# FIXES:
-# 1. Added 'hyprland' (Essential!)
-# 2. Added 'qt5-multimedia' (Fixes SDDM theme error)
-# 3. 'sddm' is still here.
-# 4. 'gtk3' and 'gtk4' are correct.
+# FIX: Added necessary Qt components for SDDM theme (qt5-quickcontrols2, qt5-graphicaleffects).
 sudo pacman -S --noconfirm --needed \
     hyprland \
-    sddm qt5-multimedia \
+    sddm qt5-multimedia qt5-quickcontrols2 qt5-graphicaleffects \
     waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
     udisks2 polkit-gnome network-manager-applet blueman \
     wl-clipboard cliphist \

@@ -47,6 +47,29 @@ initial_warning() {
     log "User confirmed to continue installation."
 }
 
+# --- NEW: Function to ask for reboot confirmation ---
+confirm_reboot() {
+    echo "" | tee -a "$LOG_FILE"
+    echo "==================================================================" | tee -a "$LOG_FILE"
+    echo "                  ✅ УСТАНОВКА ЗАВЕРШЕНА! ✅" | tee -a "$LOG_FILE"
+    echo "==================================================================" | tee -a "$LOG_FILE"
+    echo "Система готова к первому запуску Hyprland. Требуется перезагрузка." | tee -a "$LOG_FILE"
+    
+    # Wait for user input
+    read -r -p "Вы хотите перезагрузить систему сейчас? (y/N): " response
+    
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        log "Пользователь подтвердил перезагрузку. Выполняем 'sudo reboot'."
+        echo "Перезагрузка через 5 секунд..."
+        sleep 5
+        sudo reboot
+    else
+        log "Пользователь отменил перезагрузку. Завершение работы скрипта."
+        echo "Перезагрузка отменена. Пожалуйста, выполните 'sudo reboot' вручную, когда будете готовы."
+        exit 0
+    fi
+}
+
 select_theme() {
     check_dialog
     THEME_OPTIONS=("Catppuccin" "Dracula" "GruvBoxMaterial" "Nord" "TokyoNightMoon")
@@ -70,3 +93,4 @@ select_theme() {
         *) error "No theme selected. Aborting.";;
     esatc
 }
+

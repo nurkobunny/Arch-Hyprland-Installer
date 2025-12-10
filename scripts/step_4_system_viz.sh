@@ -14,13 +14,24 @@ sudo cp "$DOTFILES_DIR/sddm/simple_sddm_2/" -r /usr/share/sddm/themes/ || error 
 sudo cp "$DOTFILES_DIR/sddm/sddm.conf" -r /etc/ || error "Failed to copy sddm.conf."
 sudo systemctl enable sddm || warn "Failed to enable SDDM. Enable it manually: 'sudo systemctl enable sddm'."
 
-# C. GRUB Theme
+# --- NEW: Sudoers configuration for NOPASSWD ---
+log "Creating automatic sudoers file for NOPASSWD operations..."
+SUDOERS_FILE="/etc/sudoers.d/99-nurko_dots_nopasswd"
+# The NOPASSWD lines are required for the following commands to run without user input:
+echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/sed *, /etc/default/grub" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/sed *, /usr/share/sddm/themes/simple_sddm_2/metadata.desktop" | sudo tee -a "$SUDOERS_FILE" > /dev/null
+echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/grub-mkconfig *" | sudo tee -a "$SUDOERS_FILE" > /dev/null
+echo "$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/sed *, /boot/grub/themes" | sudo tee -a "$SUDOERS_FILE" > /dev/null
+echo "$USERNAME ALL=(ALL) NOPASSWD: /bin/cp" | sudo tee -a "$SUDOERS_FILE" > /dev/null
+sudo chmod 0440 "$SUDOERS_FILE" || warn "Failed to set correct permissions on $SUDOERS_FILE."
+log "Sudoers NOPASSWD configuration created at $SUDOERS_FILE."
+# --- END NEW Sudoers configuration ---
+
+# C. GRUB Theme (Now runs automatically thanks to NOPASSWD)
 log "Installing GRUB theme and configuring..."
 sudo cp "$DOTFILES_DIR/grub/"* -r /usr/share/grub/themes/ || error "Failed to copy GRUB theme."
-# This command requires NOPASSWD in sudoers
 sudo sed -i 's|^#GRUB_THEME=.*|GRUB_THEME="/boot/grub/themes/tartarus/theme.txt"|' /etc/default/grub || warn "Failed to set GRUB_THEME in /etc/default/grub."
 sudo chmod -R 755 /usr/share/grub/themes/*
-# This command requires NOPASSWD in sudoers
-sudo grub-mkconfig -o /boot/grub/grub.cfg || warn "Failed to run 'grub-mkconfig'. Ensure NOPASSWD is set in sudoers or run it manually."
+sudo grub-mkconfig -o /boot/grub/grub.cfg || warn "Failed to run 'grub-mkconfig'. Check the sudoers file."
 
 log "Step 4 completed successfully."

@@ -7,13 +7,14 @@ SCRIPT_DIR="$INSTALL_DIR/scripts"
 LOG_FILE="$INSTALL_DIR/installation.log"
 DOTFILES_REPO="https://github.com/nurkobunny/DotsHyprland.git"
 DOTFILES_DIR="$HOME/DotsHyprland"
+USERNAME=$(whoami)
 
 # --- Setup Logging and Functions ---
 # Create log file and clear previous log
 > "$LOG_FILE"
 echo "--- Nurko Dots Installation Log Start: $(date) ---" >> "$LOG_FILE"
 
-# Source functions
+# Source functions (assuming confirm_reboot is now inside functions.sh)
 if [ -f "$SCRIPT_DIR/functions.sh" ]; then
     source "$SCRIPT_DIR/functions.sh"
 else
@@ -63,18 +64,18 @@ chmod +x "$HOME/final_setup_nurko_dots.sh"
 log "Final graphical setup script copied to $HOME/final_setup_nurko_dots.sh"
 
 
-# --- TTY Conclusion ---
+# --- TTY Conclusion and Interactive Reboot ---
 clear
 echo "==================================================================" | tee -a "$LOG_FILE"
 echo "          🎉 TTY INSTALLATION COMPLETE (Nurko Dots) 🎉" | tee -a "$LOG_FILE"
 echo "==================================================================" | tee -a "$LOG_FILE"
 echo "--- REQUIRED NEXT STEPS ---" | tee -a "$LOG_FILE"
-echo "1. **IMPORTANT: Sudoers Configuration**" | tee -a "$LOG_FILE"
-echo "   You must manually configure NOPASSWD for automated GRUB/SDDM (as per README):" | tee -a "$LOG_FILE"
-echo "    export EDITOR=nano" | tee -a "$LOG_FILE"
-echo "    sudo visudo" | tee -a "$LOG_FILE"
-echo "   Add NOPASSWD lines for user $(whoami)." | tee -a "$LOG_FILE"
-echo "2. **REBOOT** the system: \`sudo reboot\`" | tee -a "$LOG_FILE"
-echo "3. After reboot, log in via SDDM (Hyprland session should be selected)." | tee -a "$LOG_FILE"
-echo "4. **RUN THE FINAL SCRIPT** in a terminal (Kitty): \`./final_setup_nurko_dots.sh\`" | tee -a "$LOG_FILE"
+echo "1. **SDDM will launch on reboot.** Log in with your user ($USERNAME) to the Hyprland session." | tee -a "$LOG_FILE"
+echo "2. **The final setup script will run automatically** on first Hyprland launch." | tee -a "$LOG_FILE"
+echo "3. Review the **MANUAL STEPS** displayed in the graphical warning window *after* logging in." | tee -a "$LOG_FILE"
 echo "--- Log file saved to $LOG_FILE ---" | tee -a "$LOG_FILE"
+
+# Call the interactive reboot function
+confirm_reboot
+
+exit 0

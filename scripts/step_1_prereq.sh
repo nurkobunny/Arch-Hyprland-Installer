@@ -25,7 +25,6 @@ if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
     }' /etc/pacman.conf
     
     log "Synchronizing package databases after enabling multilib..."
-    # Explicitly sync to load multilib before installing packages
     sudo pacman -Sy --noconfirm || error "Failed to update package list after enabling multilib."
 else
     log "'multilib' is already enabled. Synchronizing databases just in case..."
@@ -35,10 +34,13 @@ fi
 # 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
 # FIXES:
-# 1. Added 'sddm' to ensure the directory for the theme exists.
-# 2. Replaced 'gtk-3' and 'gtk-4' with correct 'gtk3' and 'gtk4'.
+# 1. Added 'hyprland' (Essential!)
+# 2. Added 'qt5-multimedia' (Fixes SDDM theme error)
+# 3. 'sddm' is still here.
+# 4. 'gtk3' and 'gtk4' are correct.
 sudo pacman -S --noconfirm --needed \
-    sddm \
+    hyprland \
+    sddm qt5-multimedia \
     waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
     udisks2 polkit-gnome network-manager-applet blueman \
     wl-clipboard cliphist \
@@ -55,7 +57,7 @@ sudo pacman -S --noconfirm --needed \
     lm_sensors \
     libpulse wireplumber \
     xdg-utils \
-    pacman-contrib || error "Error installing pacman dependencies. The full list of dependencies might not be correct or you may need to check your mirrorlist."
+    pacman-contrib || error "Error installing pacman dependencies. Please check your internet connection or package mirror status."
 
 # 4. Install Dependencies (yay)
 log "Installing AUR dependencies via yay..."

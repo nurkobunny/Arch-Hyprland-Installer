@@ -16,7 +16,11 @@ mkdir -p ~/.oh-my-zsh
 cp "$DOTFILES_DIR/zsh/oh-my-zsh/"* -r ~/.oh-my-zsh || error "Failed to copy Oh My Zsh files."
 # p10k already installed via yay
 cp "$DOTFILES_DIR/zsh/zshrc" ~/.zshrc || error "Failed to copy .zshrc."
-echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+
+# FIX: Ensure correct path and filename for powerlevel10k
+# The correct line should reference the theme file installed by the yay package zsh-theme-powerlevel10k-git
+echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc 
+
 cp "$DOTFILES_DIR/zsh/p10k.zsh" ~/.p10k.zsh || error "Failed to copy .p10k.zsh."
 # Plugins
 ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}

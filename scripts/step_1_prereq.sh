@@ -34,8 +34,11 @@ fi
 
 # 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
-# FIX: gtk-3 and gtk-4 replaced with correct gtk3 and gtk4
+# FIXES:
+# 1. Added 'sddm' to ensure the directory for the theme exists.
+# 2. Replaced 'gtk-3' and 'gtk-4' with correct 'gtk3' and 'gtk4'.
 sudo pacman -S --noconfirm --needed \
+    sddm \
     waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
     udisks2 polkit-gnome network-manager-applet blueman \
     wl-clipboard cliphist \
@@ -52,7 +55,7 @@ sudo pacman -S --noconfirm --needed \
     lm_sensors \
     libpulse wireplumber \
     xdg-utils \
-    pacman-contrib || error "Error installing pacman dependencies. Please check your internet connection or package mirror status."
+    pacman-contrib || error "Error installing pacman dependencies. The full list of dependencies might not be correct or you may need to check your mirrorlist."
 
 # 4. Install Dependencies (yay)
 log "Installing AUR dependencies via yay..."

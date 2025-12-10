@@ -4,6 +4,7 @@
 # --- Variables ---
 DOTFILES_DIR="$HOME/DotsHyprland"
 THEME_CHOICE_FILE="$HOME/initial_theme_choice.txt"
+USERNAME=$(whoami)
 
 # --- Logging Functions (Using notify-send for graphical feedback) ---
 notify_log() {
@@ -29,7 +30,7 @@ hyprctl reload || notify_warn "Failed to reload Hyprland config."
 
 # B. GTK Themes/Cursor fix (gsettings needs graphical environment)
 notify_log "Setting GTK font and cursor..."
-gsettings set org.gnome.desktop.interface font-name "JetBrains Mono Medium 13" 2>/dev/null || notify_warn "Failed to set GTK Font. (If this is the only issue, ignore.)"
+gsettings set org.gnome.desktop.interface font-name "JetBrains Mono Medium 13" 2>/dev/null || notify_warn "Failed to set GTK Font."
 gsettings set org.gnome.desktop.interface cursor-theme "Nordic-cursors" 2>/dev/null || notify_warn "Failed to set GTK Cursor."
 
 # C. Neovim PlugInstall
@@ -40,7 +41,7 @@ kitty nvim -c "PlugInstall" -c "qa" || notify_warn "Failed to run Neovim PlugIns
 if [ -f "$THEME_CHOICE_FILE" ]; then
     SELECTED_THEME=$(cat "$THEME_CHOICE_FILE")
     notify_log "Applying initial theme: $SELECTED_THEME"
-    # Execute the specific theme script
+    # Execute the specific theme script based on the choice file
     find "$HOME/.config/hypr/scripts/themesscript/" -name "*$SELECTED_THEME*" -exec {} \;
     rm "$THEME_CHOICE_FILE"
 else
@@ -49,7 +50,7 @@ fi
 
 # E. Spicetify Setup
 notify_log "Starting Spotify to create necessary directories for Spicetify..."
-spotify-launcher &
+spotify-launcher & #
 sleep 5
 pkill spotify-launcher || true
 notify_log "Applying Spicetify theme and enabling devtools..."

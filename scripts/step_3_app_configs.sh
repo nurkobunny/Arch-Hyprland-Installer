@@ -4,9 +4,9 @@ log "STEP 3: Copying Application Configurations..."
 
 # A. Hyprland Configs
 log "Copying Hyprland configuration..."
-rm -rf ~/.config/hypr
+rm -rf ~/.config/hypr 
 cp "$DOTFILES_DIR/config/hypr" -r ~/.config/ || error "Failed to copy Hyprland config."
-warn "Hyprland reload will happen after first launch."
+warn "Hyprland reload will happen after first launch (Section 3.A)."
 
 # B. VsCode (Code - OSS) Configs
 log "Copying VsCode (Code - OSS) configuration..."
@@ -18,7 +18,7 @@ cp "$DOTFILES_DIR/config/Code - OSS/"* -r ~/.config/Code\ -\ OSS/User/ || error 
 # C. Spicetify (Spotify Theme)
 log "Copying Spicetify configuration files..."
 cp "$DOTFILES_DIR/config/spicetify" -rf ~/.config/ || error "Failed to copy Spicetify config."
-warn "Spicetify setup requires running Spotify first. Final setup will be done in the graphical environment."
+warn "Spicetify setup requires running Spotify first. Final setup will be done in the graphical environment (Section 3.C)."
 
 # D. Other Application Configs
 log "Copying other application configurations..."
@@ -34,7 +34,7 @@ warn "Obsidian configuration requires knowing your vault path. This step must be
 log "Installing Neovim Plugin Manager (vim-plug)..."
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim' || error "Failed to install vim-plug."
-warn "After first launch, open Neovim and run ':PlugInstall' in command mode."
+warn "After first launch, open Neovim and run ':PlugInstall' in command mode (Section 3.F)."
 
 # G. Firefox UserChrome
 warn "Firefox UserChrome setup requires finding the profile name. This will be attempted after first launch, but manual steps are needed (Section 3.G)."

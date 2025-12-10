@@ -38,5 +38,5 @@ tar -xjf TokyoNight-SE.tar.bz2 || warn "Could not unpack TokyoNight-SE."
 rm -f *.tar.bz2
 cd "$HOME"
 
-warn "Cannot set GTK font and cursor theme from TTY. This will be done (or attempted) after first Hyprland launch."
+warn "Cannot set GTK font and cursor theme from TTY (gsettings will fail). This will be attempted after first Hyprland launch."
 log "Step 2 completed successfully."

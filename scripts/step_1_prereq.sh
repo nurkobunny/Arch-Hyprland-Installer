@@ -2,7 +2,7 @@
 
 log "STEP 1: Installing Prerequisites and Dependencies..."
 
-# Install yay
+# 1. Install yay
 log "Installing AUR helper 'yay'..."
 if ! command -v yay &> /dev/null; then
     sudo pacman -S --noconfirm --needed base-devel git || error "Failed to install base-devel/git."
@@ -15,19 +15,24 @@ else
     log "'yay' is already installed. Skipping."
 fi
 
-# Enable multilib
+# 2. Enable multilib and sync databases
 log "Enabling 'multilib' repository..."
 if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
+    # Uncomment multilib lines
     sudo sed -i '/#\[multilib\]/{
         N
         s/#\[multilib\]\n#Include = \/etc\/pacman\.d\/mirrorlist/\[multilib\]\nInclude = \/etc\/pacman\.d\/mirrorlist/
     }' /etc/pacman.conf
+    
+    log "Synchronizing package databases after enabling multilib..."
+    # FIX: Explicitly sync to load multilib before installing packages
     sudo pacman -Sy --noconfirm || error "Failed to update package list after enabling multilib."
 else
-    log "'multilib' is already enabled. Skipping."
+    log "'multilib' is already enabled. Synchronizing databases just in case..."
+    sudo pacman -Sy --noconfirm || error "Failed to update package list."
 fi
 
-# Install Dependencies (pacman)
+# 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
 sudo pacman -S --noconfirm --needed \
     waybar lsd rofi kitty swww fastfetch cava gtk-3 gtk-4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
@@ -46,9 +51,9 @@ sudo pacman -S --noconfirm --needed \
     lm_sensors \
     libpulse wireplumber \
     xdg-utils \
-    pacman-contrib || error "Error installing pacman dependencies."
+    pacman-contrib || error "Error installing pacman dependencies. (Check log for details)"
 
-# Install Dependencies (yay)
+# 4. Install Dependencies (yay)
 log "Installing AUR dependencies via yay..."
 yay -S --noconfirm --needed \
     pipes.sh spotify-launcher spicetify-cli obsidian tty-clock ueberzugpp \

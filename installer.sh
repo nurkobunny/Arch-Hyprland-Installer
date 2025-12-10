@@ -10,46 +10,42 @@ DOTFILES_DIR="$HOME/DotsHyprland"
 USERNAME=$(whoami)
 
 # --- Setup Logging and Functions ---
-# Create log file and clear previous log
 > "$LOG_FILE"
 echo "--- Nurko Dots Installation Log Start: $(date) ---" >> "$LOG_FILE"
 
-# Source functions (assuming confirm_reboot is now inside functions.sh)
 if [ -f "$SCRIPT_DIR/functions.sh" ]; then
     source "$SCRIPT_DIR/functions.sh"
 else
     echo "ERROR: Missing functions.sh file. Aborting." | tee -a "$LOG_FILE"
     exit 1
 fi
-
-# Set trap to ensure consistent logging on exit
 trap "echo '--- Installation Log End: $(date) ---' >> '$LOG_FILE'" EXIT
 
 # --- Execution Flow ---
 
 header_message
 
-# Check if running in TTY
 if [ -n "$DISPLAY" ]; then
     error "Detected graphical session (\$DISPLAY). Please run this script from a clean TTY."
 fi
 
-# Interactive Warning and Theme Selection
 initial_warning
-SELECTED_THEME=$(select_theme)
-echo "$SELECTED_THEME" > "$HOME/initial_theme_choice.txt"
-log "Initial theme selected and saved: $SELECTED_THEME"
 
-# 1. Run Prerequisites & Dependencies
+# --- Theme Setup (Non-interactive) ---
+SELECTED_THEME="Catppuccin" # Hardcode the default theme
+echo "$SELECTED_THEME" > "$HOME/initial_theme_choice.txt"
+log "Default theme set to: $SELECTED_THEME (Non-interactive)."
+
+# 1. Run Prerequisites & Dependencies (Includes NVIDIA choice, fixes SDDM packages)
 source "$SCRIPT_DIR/step_1_prereq.sh" || error "Step 1 (Prerequisites) failed."
 
-# 2. Run Configuration Setup
+# 2. Run Configuration Setup (Includes Zsh path fix and Wayland environment for Zsh)
 source "$SCRIPT_DIR/step_2_config_setup.sh" || error "Step 2 (Configuration Setup) failed."
 
-# 3. Run Application Configurations
+# 3. Run Application Configurations (Includes critical Hyprland environment config)
 source "$SCRIPT_DIR/step_3_app_configs.sh" || error "Step 3 (App Configs) failed."
 
-# 4. Run System & Visual Integration
+# 4. Run System & Visual Integration (Includes automated sudoers and GRUB theme)
 source "$SCRIPT_DIR/step_4_system_viz.sh" || error "Step 4 (System Integration) failed."
 
 # 5. Finalize Setup (Permissions, Copying Final Script)
@@ -61,10 +57,8 @@ chmod +x ~/.config/hypr/UserScripts/* || warn "Failed to set permissions on hypr
 # Copy the final graphical setup script
 cp "$SCRIPT_DIR/final_setup.sh" "$HOME/final_setup_nurko_dots.sh"
 chmod +x "$HOME/final_setup_nurko_dots.sh"
-log "Final graphical setup script copied to $HOME/final_setup_nurko_dots.sh"
 
-
-# --- TTY Conclusion and Interactive Reboot ---
+# TTY Conclusion and Interactive Reboot
 clear
 echo "==================================================================" | tee -a "$LOG_FILE"
 echo "          🎉 TTY INSTALLATION COMPLETE (Nurko Dots) 🎉" | tee -a "$LOG_FILE"
@@ -73,9 +67,7 @@ echo "--- REQUIRED NEXT STEPS ---" | tee -a "$LOG_FILE"
 echo "1. **SDDM will launch on reboot.** Log in with your user ($USERNAME) to the Hyprland session." | tee -a "$LOG_FILE"
 echo "2. **The final setup script will run automatically** on first Hyprland launch." | tee -a "$LOG_FILE"
 echo "3. Review the **MANUAL STEPS** displayed in the graphical warning window *after* logging in." | tee -a "$LOG_FILE"
-echo "--- Log file saved to $LOG_FILE ---" | tee -a "$LOG_FILE"
 
-# Call the interactive reboot function
 confirm_reboot
 
 exit 0

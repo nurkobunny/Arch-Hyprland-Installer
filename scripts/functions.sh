@@ -1,96 +1,91 @@
-# functions.sh - Shared functions for Nurko Dots Installer
+#!/bin/bash
+# functions.sh - Helper functions for Nurko Dots Installer (UPDATED: Theme selection removed)
 
-# --- Global Variables (Loaded in installer.sh) ---
-# LOG_FILE
-# DOTFILES_REPO
-# DOTFILES_DIR
-# USERNAME
+LOG_FILE="$INSTALL_DIR/installation.log"
+USERNAME=$(whoami)
 
-# --- Logging Functions ---
+# Basic logging functions
 log() {
-    echo -e "\n\033[1;34m[INFO]\033[0m $1" | tee -a "$LOG_FILE"
+    echo -e "[LOG] $1" | tee -a "$LOG_FILE"
 }
 
 warn() {
-    echo -e "\n\033[1;33m[WARN]\033[0m $1" | tee -a "$LOG_FILE"
+    echo -e "\n[WARN] $1" | tee -a "$LOG_FILE"
 }
 
 error() {
-    echo -e "\n\033[1;31m[ERROR]\033[0m $1" | tee -a "$LOG_FILE" >&2
+    echo -e "\n[ERROR] $1" | tee -a "$LOG_FILE"
+    echo "Aborting installation. Check $LOG_FILE for details."
     exit 1
 }
 
+# Initial welcome and check
 header_message() {
     clear
     echo "=================================================================="
-    echo "                 ✨ Nurko Dots Hyprland Installer ✨"
+    echo "         ⭐ Nurko Dots Hyprland Installer (TTY Mode) ⭐"
     echo "=================================================================="
-    echo "Source: $DOTFILES_REPO"
-    echo "------------------------------------------------------------------"
-    read -rp "Press [Enter] to continue or Ctrl+C to abort..."
-}
-
-# --- Interactive Functions (Using 'dialog' for TTY menus) ---
-check_dialog() {
-    if ! command -v dialog &> /dev/null; then
-        log "The 'dialog' utility is not installed. Installing it now..."
-        sudo pacman -S --noconfirm --needed dialog || error "Failed to install 'dialog'. Cannot continue."
-    fi
+    echo "This script will install Hyprland and configure Nurko Dotfiles."
+    echo "It assumes you have a base Arch Linux installation and are running"
+    echo "from a TTY session (Ctrl+Alt+F2/F3/etc.)."
+    echo " "
+    echo "Installation log will be saved to $LOG_FILE."
 }
 
 initial_warning() {
-    check_dialog
-    dialog --backtitle "Nurko Dots Hyprland Installer" \
-           --title "⚠️ WARNING: STARTING INSTALLATION ⚠️" \
-           --yesno "This script will install Hyprland and overwrite configuration files in $HOME/.config. Ensure you are running this in a TTY and have internet.\n\nContinue?" \
-           15 60 || exit 0
-    log "User confirmed to continue installation."
+    log "Starting interactive installation..."
+    read -r -p "Press ENTER to continue, or Ctrl+C to abort..."
 }
 
-# --- NEW: Function to ask for reboot confirmation ---
+# --- NVIDIA Driver Selection ---
+select_nvidia_drivers() {
+    clear
+    echo "=================================================================="
+    echo "                 🗃️ NVIDIA DRIVER SELECTION 🗃️"
+    echo "=================================================================="
+    echo "Hyprland often requires specific drivers for NVIDIA graphics cards."
+    echo ""
+    echo "1. Install NVIDIA Drivers (Recommended if you have NVIDIA)."
+    echo "2. Skip NVIDIA Drivers Installation (For AMD/Intel/VirtualBox)."
+    echo ""
+    
+    read -r -p "Your choice (1 or 2): " choice
+    
+    case "$choice" in
+        1)
+            log "NVIDIA driver installation mode selected."
+            echo "NVIDIA"
+            ;;
+        2)
+            log "NVIDIA driver installation skipped."
+            echo "SKIP"
+            ;;
+        *)
+            warn "Invalid choice. Defaulting to 'Skip'."
+            echo "SKIP"
+            ;;
+    esac
+}
+
+# --- Interactive Reboot Confirmation ---
 confirm_reboot() {
     echo "" | tee -a "$LOG_FILE"
     echo "==================================================================" | tee -a "$LOG_FILE"
-    echo "                  ✅ УСТАНОВКА ЗАВЕРШЕНА! ✅" | tee -a "$LOG_FILE"
+    echo "                  ✅ INSTALLATION COMPLETE! ✅" | tee -a "$LOG_FILE"
     echo "==================================================================" | tee -a "$LOG_FILE"
-    echo "Система готова к первому запуску Hyprland. Требуется перезагрузка." | tee -a "$LOG_FILE"
+    echo "The system is ready for the first Hyprland launch. A reboot is required." | tee -a "$LOG_FILE"
     
     # Wait for user input
-    read -r -p "Вы хотите перезагрузить систему сейчас? (y/N): " response
+    read -r -p "Do you want to reboot the system now? (y/N): " response
     
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        log "Пользователь подтвердил перезагрузку. Выполняем 'sudo reboot'."
-        echo "Перезагрузка через 5 секунд..."
+        log "User confirmed reboot. Executing 'sudo reboot'."
+        echo "Rebooting in 5 seconds..."
         sleep 5
         sudo reboot
     else
-        log "Пользователь отменил перезагрузку. Завершение работы скрипта."
-        echo "Перезагрузка отменена. Пожалуйста, выполните 'sudo reboot' вручную, когда будете готовы."
+        log "User cancelled reboot. Script exiting."
+        echo "Reboot cancelled. Please run 'sudo reboot' manually when you are ready."
         exit 0
     fi
 }
-
-select_theme() {
-    check_dialog
-    THEME_OPTIONS=("Catppuccin" "Dracula" "GruvBoxMaterial" "Nord" "TokyoNightMoon")
-    local choice=$(dialog --backtitle "Nurko Dots Hyprland Installer" \
-                          --title "🎨 INITIAL THEME SELECTION 🎨" \
-                          --menu "Select the initial theme to be applied after the first reboot:" \
-                          15 60 5 \
-                          1 "Catppuccin" \
-                          2 "Dracula" \
-                          3 "GruvBoxMaterial" \
-                          4 "Nord" \
-                          5 "TokyoNightMoon" \
-                          2>&1 >/dev/tty)
-    
-    case $choice in
-        1) echo "Catppuccin";;
-        2) echo "Dracula";;
-        3) echo "GruvBoxMaterial";;
-        4) echo "Nord";;
-        5) echo "TokyoNightMoon";;
-        *) error "No theme selected. Aborting.";;
-    esatc
-}
-

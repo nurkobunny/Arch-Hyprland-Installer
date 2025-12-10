@@ -25,7 +25,7 @@ if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
     }' /etc/pacman.conf
     
     log "Synchronizing package databases after enabling multilib..."
-    # FIX: Explicitly sync to load multilib before installing packages
+    # Explicitly sync to load multilib before installing packages
     sudo pacman -Sy --noconfirm || error "Failed to update package list after enabling multilib."
 else
     log "'multilib' is already enabled. Synchronizing databases just in case..."
@@ -34,8 +34,9 @@ fi
 
 # 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
+# FIX: gtk-3 and gtk-4 replaced with correct gtk3 and gtk4
 sudo pacman -S --noconfirm --needed \
-    waybar lsd rofi kitty swww fastfetch cava gtk-3 gtk-4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
+    waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
     udisks2 polkit-gnome network-manager-applet blueman \
     wl-clipboard cliphist \
     xdg-desktop-portal-hyprland xdg-desktop-portal \
@@ -51,7 +52,7 @@ sudo pacman -S --noconfirm --needed \
     lm_sensors \
     libpulse wireplumber \
     xdg-utils \
-    pacman-contrib || error "Error installing pacman dependencies. (Check log for details)"
+    pacman-contrib || error "Error installing pacman dependencies. Please check your internet connection or package mirror status."
 
 # 4. Install Dependencies (yay)
 log "Installing AUR dependencies via yay..."

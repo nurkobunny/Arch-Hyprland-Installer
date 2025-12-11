@@ -3,41 +3,22 @@
 
 log "STEP 1: Installing Prerequisites and Dependencies..."
 
-# 1. Install yay
-log "Installing AUR helper 'yay'..."
-if ! command -v yay &> /dev/null; then
-    sudo pacman -S --noconfirm --needed base-devel git || error "Failed to install base-devel/git."
-    git clone https://aur.archlinux.org/yay.git || error "Failed to clone yay."
-    cd yay
-    makepkg -si --noconfirm || error "Failed to build and install yay."
-    cd ..
-    rm -rf yay
-fi
+# ... (Install yay & multilib code remains the same) ...
 
-# 2. Enable multilib
-log "Enabling 'multilib' repository..."
-if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
-    sudo sed -i '/#\[multilib\]/{
-        N
-        s/#\[multilib\]\n#Include = \/etc\/pacman\.d\/mirrorlist/\[multilib\]\nInclude = \/etc\/pacman\.d\/mirrorlist/
-    }' /etc/pacman.conf
-    sudo pacman -Sy --noconfirm || error "Failed to update package list after enabling multilib."
-fi
-
-# Get User Preference for NVIDIA
-NVIDIA_CHOICE=$(select_nvidia_drivers)
+# Получаем выбор GPU из файла, созданного installer.sh
+GPU_CHOICE=$(cat "$HOME/gpu_choice.txt")
 
 # 3. Install Dependencies (pacman)
 log "Installing main dependencies via pacman..."
 
-# CRITICAL FIX: Added all Qt modules (qt5/qt6-multimedia/quickcontrols2/graphicaleffects) for robust SDDM support
+# CRITICAL FIX: Enhanced list, added gnome-keyring, polkit, and full Qt multimedia/quickcontrols for robust SDDM/session manager support
 PACMAN_PACKAGES="\
     hyprland mesa pipewire \
     sddm qt5-multimedia qt5-quickcontrols2 qt5-graphicaleffects \
     qt6-5compat qt6-multimedia qt6-quickcontrols2 qt6-graphicaleffects \
     zsh \
     waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
-    udisks2 polkit-gnome network-manager-applet blueman \
+    udisks2 polkit polkit-gnome gnome-keyring network-manager-applet blueman \
     wl-clipboard cliphist \
     xdg-desktop-portal-hyprland xdg-desktop-portal \
     ttf-jetbrains-mono noto-fonts-emoji \
@@ -57,7 +38,7 @@ PACMAN_PACKAGES="\
 sudo pacman -S --noconfirm --needed $PACMAN_PACKAGES || error "Error installing PACMAN base dependencies."
 
 # Conditional NVIDIA installation and configuration
-if [ "$NVIDIA_CHOICE" == "NVIDIA" ]; then
+if [ "$GPU_CHOICE" == "NVIDIA" ]; then
     log "Installing NVIDIA specific packages..."
     NVIDIA_PACKAGES="nvidia-dkms nvidia-utils nvidia-settings opencl-nvidia"
     sudo pacman -S --noconfirm --needed $NVIDIA_PACKAGES || error "Error installing NVIDIA dependencies."

@@ -36,16 +36,21 @@ SELECTED_THEME="Catppuccin" # Hardcode the default theme
 echo "$SELECTED_THEME" > "$HOME/initial_theme_choice.txt"
 log "Default theme set to: $SELECTED_THEME (Non-interactive)."
 
-# 1. Run Prerequisites & Dependencies (Includes NVIDIA choice, fixes SDDM packages)
+# --- CRITICAL: General GPU Selection and saving choice ---
+GPU_CHOICE=$(select_gpu_type)
+echo "$GPU_CHOICE" > "$HOME/gpu_choice.txt" # Сохраняем выбор для step_1_prereq.sh и step_3_app_configs.sh
+log "GPU choice saved to file: $GPU_CHOICE"
+
+# 1. Run Prerequisites & Dependencies 
 source "$SCRIPT_DIR/step_1_prereq.sh" || error "Step 1 (Prerequisites) failed."
 
-# 2. Run Configuration Setup (Includes Zsh path fix and Wayland environment for Zsh)
+# 2. Run Configuration Setup 
 source "$SCRIPT_DIR/step_2_config_setup.sh" || error "Step 2 (Configuration Setup) failed."
 
-# 3. Run Application Configurations (Includes critical Hyprland environment config)
+# 3. Run Application Configurations 
 source "$SCRIPT_DIR/step_3_app_configs.sh" || error "Step 3 (App Configs) failed."
 
-# 4. Run System & Visual Integration (Includes automated sudoers and GRUB theme)
+# 4. Run System & Visual Integration 
 source "$SCRIPT_DIR/step_4_system_viz.sh" || error "Step 4 (System Integration) failed."
 
 # 5. Finalize Setup (Permissions, Copying Final Script)

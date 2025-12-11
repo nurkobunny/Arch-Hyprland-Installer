@@ -1,5 +1,5 @@
 #!/bin/bash
-# functions.sh - Helper functions for Nurko Dots Installer (UPDATED: Theme selection removed)
+# functions.sh - Helper functions for Nurko Dots Installer (FINAL VERSION)
 
 LOG_FILE="$INSTALL_DIR/installation.log"
 USERNAME=$(whoami)
@@ -37,15 +37,43 @@ initial_warning() {
     read -r -p "Press ENTER to continue, or Ctrl+C to abort..."
 }
 
-# --- NVIDIA Driver Selection ---
+# --- 1. NEW: Function to ask about GENERAL GPU Selection ---
+select_gpu_type() {
+    clear
+    echo "=================================================================="
+    echo "                 🗃️ GPU DRIVER SELECTION 🗃️"
+    echo "=================================================================="
+    echo "Please select your primary graphics card type."
+    echo ""
+    echo "1. AMD / Intel / Virtual Machine (Uses generic Mesa drivers)"
+    echo "2. NVIDIA (Proprietary drivers)"
+    echo ""
+    
+    read -r -p "Your choice (1 or 2): " choice
+    
+    case "$choice" in
+        1)
+            log "Selected AMD / Intel / VM."
+            echo "AMD_INTEL"
+            ;;
+        2)
+            log "Selected NVIDIA. Starting sub-selection..."
+            select_nvidia_drivers
+            ;;
+        *)
+            warn "Invalid choice. Defaulting to 'AMD/Intel'."
+            echo "AMD_INTEL"
+            ;;
+    esac
+}
+
+# --- 2. Existing NVIDIA Driver Selection (Called only if 2 is chosen above) ---
 select_nvidia_drivers() {
     clear
     echo "=================================================================="
-    echo "                 🗃️ NVIDIA DRIVER SELECTION 🗃️"
+    echo "              🗃️ NVIDIA DRIVER SUB-SELECTION 🗃️"
     echo "=================================================================="
-    echo "Hyprland often requires specific drivers for NVIDIA graphics cards."
-    echo ""
-    echo "1. Install NVIDIA Drivers (Recommended if you have NVIDIA)."
+    echo "1. Install NVIDIA Drivers (Recommended)."
     echo "2. Skip NVIDIA Drivers Installation (For AMD/Intel/VirtualBox)."
     echo ""
     
@@ -75,7 +103,6 @@ confirm_reboot() {
     echo "==================================================================" | tee -a "$LOG_FILE"
     echo "The system is ready for the first Hyprland launch. A reboot is required." | tee -a "$LOG_FILE"
     
-    # Wait for user input
     read -r -p "Do you want to reboot the system now? (y/N): " response
     
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then

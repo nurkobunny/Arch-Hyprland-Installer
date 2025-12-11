@@ -1,76 +1,88 @@
 #!/bin/bash
-# final_setup.sh - Final setup script for Nurko Dots (Run inside Hyprland)
+# final_setup.sh - Script runs once upon first Hyprland graphical launch.
 
 # --- Variables ---
+LOG_FILE="$HOME/installation.log"
+INSTALL_DIR=$(cd -- "$(dirname -- "$0")" &> /dev/null && pwd)
 DOTFILES_DIR="$HOME/DotsHyprland"
-THEME_CHOICE_FILE="$HOME/initial_theme_choice.txt"
 USERNAME=$(whoami)
-AUTOSTART_FILE=~/.config/hypr/UserConfigs/Startup_Apps.conf
+AUTOSTART_FILE="$HOME/.config/hypr/UserConfigs/Startup_Apps.conf"
+SCRIPT_NAME=$(basename "$0")
+COMPONENTS_FILE="$HOME/selected_components.txt"
 
-# --- Logging Functions (Using notify-send for graphical feedback) ---
-notify_log() {
-    if command -v notify-send &> /dev/null; then
-        notify-send "Nurko Dots Setup" "$1" -i info
-    fi
-    echo -e "\n[INFO] $1"
+# Simple logging function for graphical session
+log_final() {
+    echo -e "[FINAL SETUP] $1" >> "$LOG_FILE"
 }
 
-notify_warn() {
-    if command -v notify-send &> /dev/null; then
-        notify-send "Nurko Dots Setup (Warning)" "$1" -i warning
-    fi
-    echo -e "\n[WARN] $1"
-}
-
-# --- Core Setup ---
-
-notify_log "Starting final setup for Nurko Dots in Hyprland..."
-
-# A. Hyprland Configs Reload
-hyprctl reload || notify_warn "Failed to reload Hyprland config."
-
-# B. GTK Themes/Cursor fix (gsettings needs graphical environment)
-notify_log "Setting GTK font and cursor..."
-gsettings set org.gnome.desktop.interface font-name "JetBrains Mono Medium 13" 2>/dev/null || notify_warn "Failed to set GTK Font."
-gsettings set org.gnome.desktop.interface cursor-theme "Nordic-cursors" 2>/dev/null || notify_warn "Failed to set GTK Cursor."
-
-# C. Neovim PlugInstall
-notify_log "Installing Neovim plugins (:PlugInstall)..."
-kitty nvim -c "PlugInstall" -c "qa" || notify_warn "Failed to run Neovim PlugInstall. Try running 'nvim' and then ':PlugInstall' manually."
-
-# D. Apply Initial Theme
-if [ -f "$THEME_CHOICE_FILE" ]; then
-    SELECTED_THEME=$(cat "$THEME_CHOICE_FILE")
-    notify_log "Applying initial theme: $SELECTED_THEME"
-    find "$HOME/.config/hypr/scripts/themesscript/" -name "*$SELECTED_THEME*" -exec {} \;
-    rm "$THEME_CHOICE_FILE"
-else
-    notify_warn "Initial theme choice file not found. Apply theme manually using SUPER + T."
+# 1. Check if the script should run (based on APP_CONFIGS component selection)
+if [ ! -f "$COMPONENTS_FILE" ] || ! grep -q "APP_CONFIGS" "$COMPONENTS_FILE"; then
+    log_final "APP_CONFIGS component was not selected. Skipping final setup and cleaning autostart."
+    # Clean autostart even if skipped (for safety)
+    sed -i "/exec-once = $HOME\/$SCRIPT_NAME/d" "$AUTOSTART_FILE"
+    exit 0
 fi
 
-# E. Spicetify Setup
-# (Spotify launch, pkill, and spicetify apply omitted for brevity, assuming working logic)
 
-# F. Firefox UserChrome Setup
-# (Firefox profile configuration omitted for brevity, assuming working logic)
-
-# --- Manual Steps (Cannot be fully automated) ---
-
-notify_log "--- ⚠️ MANUAL INTERVENTION REQUIRED (Nurko Dots) ⚠️ ---"
-
-MANUAL_STEPS="1. **Obsidian Config:** Copy the config to your vault's location. (e.g., \$ cp $DOTFILES_DIR/obsidian/* -r /path/to/your/obsidian/vault/.obsidian)\n\n2. **Spicetify Manual:** Open Spotify, install extensions (Auto Skip Videos, adblockify, Spicy Lyrics). Go to Settings, enable Static Background/Hide Now Playing View Dynamic Background, set Static Background Type to 'color', and run 'spicetify apply' in terminal.\n\n3. **Firefox Custom New Page:** Launch Firefox, enable the **Custom New Page** extension, and set its **New Tab Url** to \`http://localhost:8000/\`."
-
-# Show manual steps in a graphical box
-if command -v zenity &> /dev/null; then
-    zenity --warning --title="Nurko Dots - Final Manual Steps" --text="$MANUAL_STEPS"
-else
-    echo -e "$MANUAL_STEPS"
+# 2. Check if already run (using a simple flag file)
+if [ -f "$HOME/.nurko_dots_setup_completed" ]; then
+    log_final "Setup already completed. Cleaning autostart and exiting."
+    # In case the flag exists, but autostart was not cleaned
+    sed -i "/exec-once = $HOME\/$SCRIPT_NAME/d" "$AUTOSTART_FILE"
+    exit 0
 fi
 
-# --- Cleanup ---
-notify_log "Removing autostart entry and cleaning up scripts."
-# Remove autostart entry for this script from Hyprland config (This is the required cleanup)
-sed -i '\/final_setup_nurko_dots.sh/d' "$AUTOSTART_FILE"
-rm "$HOME/final_setup_nurko_dots.sh"
+log_final "Starting final graphical setup (first run)..."
 
-notify_log "🎉 ALL AUTOMATIC SETUP COMPLETE! Use SUPER + T to change themes. 🎉"
+# 3. Apply default theme and run post-install tasks
+DEFAULT_THEME=$(cat "$HOME/initial_theme_choice.txt" 2>/dev/null || echo "Catppuccin")
+
+log_final "Running initial theme script for $DEFAULT_THEME."
+# Call the theme application script (assuming it exists in dotfiles)
+if [ -x "$DOTFILES_DIR/config/hypr/scripts/themesscript/themecall.sh" ]; then
+    "$DOTFILES_DIR/config/hypr/scripts/themesscript/themecall.sh" "$DEFAULT_THEME"
+else
+    log_final "WARNING: themecall.sh script not found/executable. Skipping theme application."
+fi
+
+# 4. Neovim Plugin Setup
+log_final "Installing Neovim plugins..."
+# Launch nvim using kitty to see progress, but run in background
+kitty -e nvim --headless +PackerSync +qa &
+
+# 5. Cleanup and Mark as Complete
+log_final "Cleanup: Removing autostart line from Startup_Apps.conf."
+# Remove the autostart line so the script does not run again
+sed -i "/exec-once = $HOME\/$SCRIPT_NAME/d" "$AUTOSTART_FILE"
+
+log_final "Cleanup: Creating completion flag."
+touch "$HOME/.nurko_dots_setup_completed"
+
+log_final "Cleanup: Removing temporary files."
+rm -f "$HOME/initial_theme_choice.txt" 
+rm -f "$HOME/gpu_choice.txt"
+# Remove the script itself
+rm -f "$HOME/$SCRIPT_NAME"
+
+# 6. Final User Notification (NOW IN ENGLISH)
+log_final "Final instructions shown to user."
+
+(
+echo "=========================================================="
+echo "    ✨ NURKO DOTS INSTALLATION COMPLETE! (Hyprland) ✨"
+echo "=========================================================="
+echo "1. Default theme ($DEFAULT_THEME) has been applied."
+echo "2. Neovim plugins are installing in the background."
+echo " "
+echo "--- REQUIRED MANUAL STEPS: ---"
+echo "   - Set the Gnome Keyring password when prompted for application authorization (Spotify, VSCode)."
+echo "   - Complete VsCode/Spotify setup if required."
+echo "   - Press Win + R (Rofi) to launch applications."
+echo " "
+echo "=========================================================="
+echo "You may close this window. The script will not run again."
+echo "=========================================================="
+read -r -p "Press ENTER to close..."
+) | kitty --title "NURKO DOTS SETUP COMPLETE" -
+
+exit 0

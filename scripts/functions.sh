@@ -1,5 +1,5 @@
 #!/bin/bash
-# functions.sh - Helper functions for Nurko Dots Installer (FINAL VERSION)
+# functions.sh - Helper functions for Nurko Dots Installer (FINAL: Using WHIPTAIL)
 
 LOG_FILE="$INSTALL_DIR/installation.log"
 USERNAME=$(whoami)
@@ -37,65 +37,60 @@ initial_warning() {
     read -r -p "Press ENTER to continue, or Ctrl+C to abort..."
 }
 
-# --- 1. NEW: Function to ask about GENERAL GPU Selection ---
+# --- 1. Function to ask about GENERAL GPU Selection (Using whiptail) ---
 select_gpu_type() {
-    clear
-    echo "=================================================================="
-    echo "                 🗃️ GPU DRIVER SELECTION 🗃️"
-    echo "=================================================================="
-    echo "Please select your primary graphics card type."
-    echo ""
-    echo "1. AMD / Intel / Virtual Machine (Uses generic Mesa drivers)"
-    echo "2. NVIDIA (Proprietary drivers)"
-    echo ""
+    log "Starting whiptail GPU selection menu."
     
-    read -r -p "Your choice (1 or 2): " choice
-    
-    case "$choice" in
-        1)
-            log "Selected AMD / Intel / VM."
-            echo "AMD_INTEL"
-            ;;
-        2)
-            log "Selected NVIDIA. Starting sub-selection..."
-            select_nvidia_drivers
-            ;;
-        *)
-            warn "Invalid choice. Defaulting to 'AMD/Intel'."
-            echo "AMD_INTEL"
-            ;;
-    esac
+    GPU_CHOICE=$(whiptail --backtitle "Nurko Dots Hyprland Installer" \
+        --title "GPU DRIVER SELECTION" \
+        --menu "Please select your primary graphics card type:" 15 60 4 \
+        "AMD_INTEL" "AMD / Intel / Virtual Machine (Mesa)" \
+        "NVIDIA_OPT" "NVIDIA (Proprietary drivers)" \
+        3>&1 1>&2 2>&3)
+
+    exit_status=$?
+    clear # Очищаем экран после диалога
+
+    if [ $exit_status -eq 0 ]; then
+        case "$GPU_CHOICE" in
+            "AMD_INTEL")
+                log "Selected AMD / Intel / VM."
+                echo "AMD_INTEL"
+                ;;
+            "NVIDIA_OPT")
+                log "Selected NVIDIA option. Starting sub-selection..."
+                select_nvidia_drivers # Вызываем функцию выбора NVIDIA
+                ;;
+            *)
+                warn "Invalid choice from whiptail. Defaulting to 'AMD/Intel'."
+                echo "AMD_INTEL"
+                ;;
+        esac
+    else
+        # Нажата отмена или ESC
+        error "GPU selection cancelled by user."
+    fi
 }
 
-# --- 2. Existing NVIDIA Driver Selection (Called only if 2 is chosen above) ---
+# --- 2. Existing NVIDIA Driver Selection (Using whiptail - Yes/No box) ---
 select_nvidia_drivers() {
+    log "Starting NVIDIA driver confirmation dialog..."
+    
+    # whiptail --yesno возвращает 0 при Yes, 1 при No
+    if (whiptail --backtitle "Nurko Dots Hyprland Installer" \
+        --title "NVIDIA DRIVER CONFIRMATION" \
+        --yesno "Do you want to install NVIDIA proprietary drivers? \n(Required for full performance if you have an NVIDIA card.)" 10 60); then
+        
+        log "NVIDIA driver installation mode selected (Yes)."
+        echo "NVIDIA"
+    else
+        log "NVIDIA driver installation skipped (No)."
+        echo "SKIP"
+    fi
     clear
-    echo "=================================================================="
-    echo "              🗃️ NVIDIA DRIVER SUB-SELECTION 🗃️"
-    echo "=================================================================="
-    echo "1. Install NVIDIA Drivers (Recommended)."
-    echo "2. Skip NVIDIA Drivers Installation (For AMD/Intel/VirtualBox)."
-    echo ""
-    
-    read -r -p "Your choice (1 or 2): " choice
-    
-    case "$choice" in
-        1)
-            log "NVIDIA driver installation mode selected."
-            echo "NVIDIA"
-            ;;
-        2)
-            log "NVIDIA driver installation skipped."
-            echo "SKIP"
-            ;;
-        *)
-            warn "Invalid choice. Defaulting to 'Skip'."
-            echo "SKIP"
-            ;;
-    esac
 }
 
-# --- Interactive Reboot Confirmation ---
+# --- 3. Interactive Reboot Confirmation (Полная версия) ---
 confirm_reboot() {
     echo "" | tee -a "$LOG_FILE"
     echo "==================================================================" | tee -a "$LOG_FILE"

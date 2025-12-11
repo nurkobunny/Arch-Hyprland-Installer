@@ -67,8 +67,6 @@ fi
 # --- Theme Setup (Non-interactive) ---
 SELECTED_THEME="Catppuccin" # Hardcode the default theme
 echo "$SELECTED_THEME" > "$HOME/initial_theme_choice.txt"
-log "Default theme set to: $SELECTED_THEME (Non-interactive)."
-
 # --- CRITICAL: General GPU Selection and saving choice ---
 GPU_CHOICE=$(select_gpu_type) 
 echo "$GPU_CHOICE" > "$HOME/gpu_choice.txt" 

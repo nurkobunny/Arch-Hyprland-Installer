@@ -102,9 +102,7 @@ confirm_reboot() {
     
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         log "User confirmed reboot. Executing 'sudo reboot'."
-        echo "Rebooting in 5 seconds..."
-        sleep 5
-        sudo reboot
+        reboot
     else
         log "User cancelled reboot. Script exiting."
         echo "Reboot cancelled. Please run 'sudo reboot' manually when you are ready."

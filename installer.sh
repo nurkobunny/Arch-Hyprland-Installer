@@ -59,14 +59,15 @@ fi
 log "Selected components: $COMPONENTS"
 echo "$COMPONENTS" > "$HOME/selected_components.txt" 
 
-# Проверяем, что Hyprland выбран.
 if [[ ! "$COMPONENTS" =~ "HYPRLAND" ]]; then
     error "Hyprland/Core Dependencies must be selected to proceed."
 fi
 
 # --- Theme Setup (Non-interactive) ---
-SELECTED_THEME="Catppuccin" # Hardcode the default theme
+SELECTED_THEME="Catppuccin" 
 echo "$SELECTED_THEME" > "$HOME/initial_theme_choice.txt"
+log "Default theme set to: $SELECTED_THEME (Non-interactive)."
+
 # --- CRITICAL: General GPU Selection and saving choice ---
 GPU_CHOICE=$(select_gpu_type) 
 echo "$GPU_CHOICE" > "$HOME/gpu_choice.txt" 
@@ -85,18 +86,16 @@ source "$SCRIPT_DIR/step_3_app_configs.sh" || error "Step 3 (App Configs) failed
 source "$SCRIPT_DIR/step_4_system_viz.sh" || error "Step 4 (System Integration) failed."
 
 # 5. Finalize Setup (Permissions, Copying Final Script)
-log "STEP 5: Finalizing setup and setting permissions..."
+log "STEP 5: Finalizing setup..."
 
 if [[ "$COMPONENTS" =~ "APP_CONFIGS" ]]; then
-    chmod +x ~/.config/hypr/scripts/* || warn "Failed to set permissions on hypr/scripts."
-    chmod +x ~/.config/hypr/scripts/themesscript/* || warn "Failed to set permissions on hypr/scripts/themesscript."
-    chmod +x ~/.config/hypr/UserScripts/* || warn "Failed to set permissions on hypr/UserScripts."
-
+    # Permissions are handled in step_3_app_configs.sh
     # Copy the final graphical setup script
     cp "$SCRIPT_DIR/final_setup.sh" "$HOME/final_setup_nurko_dots.sh"
     chmod +x "$HOME/final_setup_nurko_dots.sh"
+    log "Final setup script copied and made executable."
 else
-    log "Final setup/script permissions skipped (APP_CONFIGS not selected)."
+    log "Final setup script copying skipped (APP_CONFIGS not selected)."
 fi
 
 # TTY Conclusion and Interactive Reboot

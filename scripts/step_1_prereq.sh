@@ -36,7 +36,7 @@ if [[ "$COMPONENTS" =~ "HYPRLAND" ]]; then
     PACMAN_PACKAGES="\
         hyprland mesa pipewire \
         sddm qt5-multimedia qt5-quickcontrols2 qt5-graphicaleffects \
-        qt6-5compat qt6-multimedia qt6-quickcontrols2 qt6-graphicaleffects \
+        qt6-5compat qt6-multimedia \
         zsh \
         waybar lsd rofi kitty swww fastfetch cava gtk3 gtk4 obsidian swaync vscode swappy nvim gvfs thunar firefox \
         udisks2 polkit polkit-gnome gnome-keyring network-manager-applet blueman \
